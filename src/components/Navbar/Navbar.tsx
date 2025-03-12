@@ -1,16 +1,18 @@
-"use client"
+"use client";
 
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import Image from "next/image";
+import logoImg from "../../../public/icons/417569897_903363158461019_3369518622687413448_n.png";
+import { log } from "console";
+// Register ScrollTrigger plugin
+gsap.registerPlugin(ScrollTrigger);
 
 export const SlideTabsExample: React.FC = () => {
-  return (
-    <div className="bg-neutral-100 py-20">
-      <SlideTabs />
-    </div>
-  );
+  return <SlideTabs />;
 };
 
 type PositionState = {
@@ -21,8 +23,14 @@ type PositionState = {
 
 const SlideTabs: React.FC = () => {
   const [isShrunk, setIsShrunk] = useState(false);
-  const navRef = useRef<HTMLUListElement>(null); // Specify the type for navRef
-  const menuIconRef = useRef<HTMLDivElement>(null); // Specify the type for menuIconRef
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [cursorVisible, setCursorVisible] = useState(true);
+  const navRef = useRef<HTMLUListElement>(null);
+  const menuIconRef = useRef<HTMLDivElement>(null);
+  const sidebarRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLDivElement>(null);
+  const cursorRef = useRef<HTMLLIElement>(null);
+  const linksRef = useRef<(HTMLLIElement | null)[]>([]);
 
   const [position, setPosition] = useState<PositionState>({
     left: 0,
@@ -32,66 +40,208 @@ const SlideTabs: React.FC = () => {
 
   // Create the timeline outside of useGSAP to ensure it persists
   const navTimeline = useRef<gsap.core.Timeline | null>(null);
+  const sidebarTimeline = useRef<gsap.core.Timeline | null>(null);
 
   useGSAP(() => {
-    // Initialize the timeline
-    navTimeline.current = gsap.timeline({ paused: true })
-      .to(".tabRef", { y: 50, opacity: 0 })
+    // Initialize the navbar timeline
+    navTimeline.current = gsap
+      .timeline({
+        paused: true,
+        onStart: () => {
+          setCursorVisible(false);
+        },
+        onReverseComplete: () => {
+          setCursorVisible(true);
+        },
+      })
+      .to(".tabRef", { y: 50, opacity: 0, duration: 0.5 })
       .to(navRef.current, { width: 60, height: 60, duration: 0.3 })
       .to(".tabRef", { visibility: "hidden", duration: 0 })
-      .to(menuIconRef.current, { opacity: 1, scale: 1, z: 100, duration: 0.3 }, "-=0.2")
+      .to(
+        menuIconRef.current,
+        { opacity: 1, scale: 1, z: 100, duration: 0.3 },
+        "-=0.2"
+      )
       .to(navRef.current, {
-        x:700, // Calculate 80% of navRef's width
+        x: 700,
         rotate: 360,
         duration: 0.5,
       });
-  }, []); // Empty dependency array to ensure the timeline is created only once
+
+    // Initialize the sidebar timeline
+    sidebarTimeline.current = gsap
+      .timeline({ paused: true })
+      .fromTo(
+        sidebarRef.current,
+        { x: "-100%" },
+        { x: 0, duration: 0.5, ease: "power2.out" }
+      )
+      .from(".SideLink", { xPercent: -100, opacity: 0, stagger: 0.1 });
+
+    // Set up ScrollTrigger for the navbar
+    ScrollTrigger.create({
+      trigger: triggerRef.current,
+      start: "top bottom",
+      onEnter: () => {
+        setIsShrunk(true);
+      },
+      onLeaveBack: () => {
+        setIsShrunk(false);
+        setIsSidebarOpen(false);
+      },
+    });
+  }, []);
 
   useGSAP(() => {
-    // Control the timeline based on the `isShrunk` state
     if (isShrunk) {
-      navTimeline.current?.play(); // Play the timeline forward
+      navTimeline.current?.play();
     } else {
-      navTimeline.current?.reverse(); // Reverse the timeline
+      navTimeline.current?.reverse();
     }
-  }, [isShrunk]); // Re-run the animation when `isShrunk` changes
+  }, [isShrunk]);
+
+  useGSAP(() => {
+    if (isSidebarOpen) {
+      sidebarTimeline.current?.play();
+    } else {
+      sidebarTimeline.current?.reverse();
+    }
+  }, [isSidebarOpen]);
+
+  useEffect(() => {
+    if (isShrunk) {
+      setCursorVisible(false);
+    }
+  }, [isShrunk]);
+
+  useGSAP(() => {
+    gsap.set(linksRef.current, { scale: 1, opacity: 1 });
+
+    linksRef.current.forEach((link) => {
+      if (link) {
+        gsap.to(link, {
+          scale: 1.1,
+          opacity: 0.8,
+          duration: 0.2,
+          ease: "power2.out",
+          paused: true,
+        });
+
+        link.addEventListener("mouseenter", () =>
+          gsap.to(link, { scale: 1.1, opacity: 1, duration: 0.2 })
+        );
+        link.addEventListener("mouseleave", () =>
+          gsap.to(link, { scale: 1, opacity: 0.8, duration: 0.2 })
+        );
+      }
+    });
+
+    return () => {
+      linksRef.current.forEach((link) => {
+        if (link) {
+          link.removeEventListener("mouseenter", () => {});
+          link.removeEventListener("mouseleave", () => {});
+        }
+      });
+    };
+  }, []);
 
   return (
     <>
-      <ul
-        ref={navRef}
-        onMouseLeave={() => {
-          setPosition((prev) => ({
-            ...prev,
-            opacity: 0,
-          }));
-        }}
-        className="relative mx-auto flex w-fit rounded-full border-2 border-black bg-white p-1"
-      >
-        <Tab setPosition={setPosition} targetId="home">Home</Tab>
-        <Tab setPosition={setPosition} targetId="pricing">Pricing</Tab>
-        <Tab setPosition={setPosition} targetId="features">Features</Tab>
-        <Tab setPosition={setPosition} targetId="docs">Docs</Tab>
-        <Tab setPosition={setPosition} targetId="blog">Blog</Tab>
-
-        <Cursor position={position} />
-
-        {/* Menu Icon */}
-        <div
-          ref={menuIconRef}
-          className="absolute inset-0 flex items-center justify-center opacity-0"
+      {/* Sticky Wrapper with top margin - added pt-8 class */}
+      <div className="sticky top-0 z-50 pt-8 bg-transparent">
+        <ul
+          ref={navRef}
+          onMouseLeave={() => {
+            setPosition((prev) => ({
+              ...prev,
+              opacity: 0,
+            }));
+          }}
+          className="mx-auto flex w-fit rounded-full border-2 border-black bg-white p-1"
         >
-          <span className="text-2xl text-black">☰</span>
-        </div>
-      </ul>
-      <button
-        onClick={() => {
-          setIsShrunk((prev) => !prev); // Toggle the `isShrunk` state
-        }}
-        className="mt-4 px-4 py-2 bg-black text-white rounded-md hover:cursor-auto"
+          <Tab
+            setPosition={setPosition}
+            targetId="home"
+            isShrunk={isShrunk}
+            cursorVisible={cursorVisible}
+          >
+            Home
+          </Tab>
+          <Tab
+            setPosition={setPosition}
+            targetId="pricing"
+            isShrunk={isShrunk}
+            cursorVisible={cursorVisible}
+          >
+            Pricing
+          </Tab>
+          <Tab
+            setPosition={setPosition}
+            targetId="features"
+            isShrunk={isShrunk}
+            cursorVisible={cursorVisible}
+          >
+            Features
+          </Tab>
+          <Tab
+            setPosition={setPosition}
+            targetId="docs"
+            isShrunk={isShrunk}
+            cursorVisible={cursorVisible}
+          >
+            Docs
+          </Tab>
+          <Tab
+            setPosition={setPosition}
+            targetId="blog"
+            isShrunk={isShrunk}
+            cursorVisible={cursorVisible}
+          >
+            Blog
+          </Tab>
+
+          {/* Cursor Component */}
+          {cursorVisible && <Cursor position={position} ref={cursorRef} />}
+
+          {/* Hamburger Menu Icon */}
+          <div
+            ref={menuIconRef}
+            className="absolute inset-0 flex items-center justify-center opacity-0 cursor-pointer"
+            onClick={() => setIsSidebarOpen((prev) => !prev)}
+          >
+            <span className="text-2xl text-black">☰</span>
+          </div>
+        </ul>
+      </div>
+
+      {/* Sidebar */}
+      <div
+        ref={sidebarRef}
+        className="fixed top-0 left-0 h-full w-64 bg-white shadow-lg z-40 transform -translate-x-full"
       >
-        Toggle Shrink
-      </button>
+        <div className="p-4 flex flex-col items-center justify-top h-full">
+          <Image src={logoImg} width={180} height={180} alt="Logo" />
+          <ul className="w-full mt-4 self-start">
+            {["Home", "Pricing", "Features", "Docs", "Blog"].map(
+              (text, index) => (
+                <li
+                  key={index}
+                  ref={(el) => {
+                    linksRef.current[index] = el; // Assign but don't return anything
+                  }}
+                  className="SideLink mb-2 text-left text-2xl uppercase px-4 opacity-80 cursor-pointer"
+                >
+                  {text}
+                </li>
+              )
+            )}
+          </ul>
+        </div>
+      </div>
+
+      {/* Trigger div */}
+      <div ref={triggerRef} className=" bg-blue-100"></div>
     </>
   );
 };
@@ -100,9 +250,17 @@ type TabProps = {
   children: React.ReactNode;
   setPosition: React.Dispatch<React.SetStateAction<PositionState>>;
   targetId: string;
+  isShrunk: boolean;
+  cursorVisible: boolean;
 };
 
-const Tab: React.FC<TabProps> = ({ children, setPosition, targetId }) => {
+const Tab: React.FC<TabProps> = ({
+  children,
+  setPosition,
+  targetId,
+  isShrunk,
+  cursorVisible,
+}) => {
   const tabRef = useRef<HTMLLIElement>(null);
 
   const handleClick = () => {
@@ -116,7 +274,7 @@ const Tab: React.FC<TabProps> = ({ children, setPosition, targetId }) => {
     <li
       ref={tabRef}
       onMouseEnter={() => {
-        if (!tabRef.current) return;
+        if (!tabRef.current || isShrunk || !cursorVisible) return;
 
         const { width } = tabRef.current.getBoundingClientRect();
 
@@ -136,15 +294,22 @@ const Tab: React.FC<TabProps> = ({ children, setPosition, targetId }) => {
 
 type CursorProps = {
   position: PositionState;
+  ref: React.Ref<HTMLLIElement>;
 };
 
-const Cursor: React.FC<CursorProps> = ({ position }) => {
+const Cursor: React.FC<CursorProps> = React.forwardRef<
+  HTMLLIElement,
+  Omit<CursorProps, "ref">
+>((props, ref) => {
   return (
     <motion.li
+      ref={ref}
       animate={{
-        ...position,
+        ...props.position,
       }}
-      className="absolute z-0 h-7 rounded-full bg-black md:h-12"
+      className="CursorRef absolute z-0 h-7 rounded-full bg-black md:h-12"
     />
   );
-};
+});
+
+Cursor.displayName = "Cursor";
