@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import HomePage from "../pages/HomePage";
 import { useRef } from "react";
 import PricingPage from "@/pages/Pricing";

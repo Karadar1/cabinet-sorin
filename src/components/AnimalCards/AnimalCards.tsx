@@ -1,6 +1,5 @@
 import React from "react";
 import styles from "./style.module.css";
-import { StaticImageData } from "next/image";
 import Image from "next/image";
 interface AnimalCardProps {
   title: string;

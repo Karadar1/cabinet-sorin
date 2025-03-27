@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useEffect } from "react";
+import React, { useRef } from "react";
 import Image from "next/image";
 import { Poppins } from "next/font/google";
 import { useGSAP } from "@gsap/react";
