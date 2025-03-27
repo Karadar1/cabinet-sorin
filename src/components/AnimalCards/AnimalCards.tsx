@@ -1,10 +1,11 @@
 import React from "react";
 import styles from "./style.module.css";
-import Image from "next/image";
+import Image, { StaticImageData } from "next/image";
+
 interface AnimalCardProps {
   title: string;
-  image: any;
-  onClick: any;
+  image: StaticImageData | string; // Can be either a static import or a path string
+  onClick: () => void;
 }
 
 const AnimalCard: React.FC<AnimalCardProps> = ({ title, image, onClick }) => {
