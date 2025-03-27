@@ -1,37 +1,47 @@
+"use client";
+
 import Image from "next/image";
 import HomePage from "../pages/HomePage";
-import { SlideTabsExample } from "@/components/Navbar/Navbar";
+import { useRef } from "react";
+import PricingPage from "@/pages/Pricing";
+import TeamPage from "@/pages/TeamPage";
+import ContactPage from "@/pages/Contact";
+import MobileNavbar from "@/components/Navbar/MobileNavbar";
+import Gallery from "@/pages/ImageGallery";
 
 export default function Home() {
+  const triggerRef = useRef<HTMLDivElement>(null!);
+
   return (
     <>
-      <SlideTabsExample />
-      <div id="home" className="h-screen flex items-center justify-center">
+      <MobileNavbar />
+      <div
+        id="home"
+        ref={triggerRef}
+        className="min-h-screen flex items-center pt-16 justify-center"
+      >
         <HomePage />
       </div>
-      <div
-        id="pricing"
-        className="h-screen bg-blue-200 flex items-center justify-center"
-      >
-        <h1 className="text-4xl">Pricing Section</h1>
+      <div id="pricing" className="min-h-screen pt-16 ">
+        <PricingPage />
       </div>
       <div
         id="features"
-        className="h-screen bg-green-200 flex items-center justify-center"
+        className="min-h-screen bg-green-200 flex items-center justify-center"
       >
-        <h1 className="text-4xl">Features Section</h1>
+        <TeamPage />
       </div>
       <div
         id="docs"
-        className="h-screen bg-yellow-200 flex items-center justify-center"
+        className="min-h-screen bg-yellow-200 flex items-center justify-center"
       >
-        <h1 className="text-4xl">Docs Section</h1>
+        <ContactPage />
       </div>
       <div
         id="blog"
-        className="h-screen bg-purple-200 flex items-center justify-center"
+        className="min-h-screen bg-purple-200 flex items-center justify-center"
       >
-        <h1 className="text-4xl">Blog Section</h1>
+        <Gallery />
       </div>
     </>
   );
