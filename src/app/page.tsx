@@ -8,13 +8,19 @@ import TeamPage from "@/pages/TeamPage";
 import ContactPage from "@/pages/Contact";
 import MobileNavbar from "@/components/Navbar/MobileNavbar";
 import Gallery from "@/pages/ImageGallery";
+import DesktopNavbar from "@/components/Navbar/DesktopNavbar";
 
 export default function Home() {
   const triggerRef = useRef<HTMLDivElement>(null!);
 
   return (
     <>
-      <MobileNavbar />
+      <div className="block md:hidden">
+        <MobileNavbar />
+      </div>
+      <div className="hidden md:block">
+        <DesktopNavbar />
+      </div>
       <div
         id="home"
         ref={triggerRef}
@@ -26,20 +32,20 @@ export default function Home() {
         <PricingPage />
       </div>
       <div
-        id="features"
-        className="min-h-screen bg-green-200 flex items-center justify-center"
+        id="team"
+        className="min-h-screen pt-16 flex items-center justify-center"
       >
         <TeamPage />
       </div>
       <div
-        id="docs"
-        className="min-h-screen bg-yellow-200 flex items-center justify-center"
+        id="contact"
+        className="min-h-screen pt-16 flex items-center justify-center"
       >
         <ContactPage />
       </div>
       <div
-        id="blog"
-        className="min-h-screen bg-purple-200 flex items-center justify-center"
+        id="gallery"
+        className="min-h-screen pt-16  flex items-center justify-center"
       >
         <Gallery />
       </div>

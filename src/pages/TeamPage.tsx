@@ -40,7 +40,7 @@ const teamMembers = [
 
 const TeamPage = () => {
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 px-6 py-12">
+    <div className="flex flex-col items-center justify-center min-h-screen  px-6 py-12">
       <motion.h1
         className="text-4xl font-bold text-gray-800 mb-6"
         initial={{ opacity: 0, y: -20 }}
